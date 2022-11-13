@@ -8,11 +8,12 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 const (
-	screenSizeX = TileSize * (Width + 1)
-	screenSizeY = TileSize * (Height + 1)
+	screenSizeX = TileSize * (Width + 2)
+	screenSizeY = TileSize * (Height + 2)
 	Width       = 15
 	Height      = 12
 	TileSize    = 50
@@ -21,7 +22,7 @@ const (
 var (
 	White  = color.RGBA{255, 255, 255, 255}
 	Tile   = color.RGBA{77, 77, 77, 255}
-	NGoal  = color.RGBA{255, 0, 190, 255}
+	NGoal  = color.RGBA{255, 150, 150, 255}
 	YGoal  = color.RGBA{150, 255, 0, 255}
 	Player = color.RGBA{225, 227, 167, 255}
 
@@ -70,6 +71,37 @@ type Goal struct {
 // }
 
 func (g *Game) Update() error {
+	var directionX int
+	var directionY int
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) || inpututil.IsKeyJustPressed(ebiten.KeyA) {
+		directionX = -1
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyRight) || inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		directionX = 1
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyUp) || inpututil.IsKeyJustPressed(ebiten.KeyW) {
+		directionY = -1
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyDown) || inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		directionY = 1
+	}
+
+	PlayerPosition["x"] += directionX
+	PlayerPosition["y"] += directionY
+
+	if PlayerPosition["x"] < 0 {
+		PlayerPosition["x"] = 0
+	}
+	if PlayerPosition["x"] > Width-1 {
+		PlayerPosition["x"] = Width - 1
+	}
+	if PlayerPosition["y"] < 0 {
+		PlayerPosition["y"] = 0
+	}
+	if PlayerPosition["y"] > Height-1 {
+		PlayerPosition["y"] = Height - 1
+	}
 	return nil
 }
 
