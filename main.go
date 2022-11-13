@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"image/color"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	screenWidth  = 320
-	screenHeight = 320
+	screenSizeX = 320
+	screenSizeY = 320
 )
 
 type Game struct{}
@@ -20,16 +20,15 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, "Hello, World!")
+	ebitenutil.DrawRect(ebiten.NewImage(5, 5), 0, 0, 5, 5, color.RGBA{255, 255, 255, 255})
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	fmt.Println(screenWidth)
-	return screenWidth, screenHeight
+	return screenSizeX, screenSizeY
 }
 
 func main() {
-	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowSize(screenSizeX, screenSizeY)
 	ebiten.SetWindowTitle("soGOban")
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
