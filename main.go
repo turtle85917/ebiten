@@ -90,6 +90,44 @@ func (g *Game) Update() error {
 	PlayerPosition["x"] += directionX
 	PlayerPosition["y"] += directionY
 
+	for idx := 0; idx < len(_Box); idx++ {
+		newbox := BoxFilter(_Box, func(box Box) bool {
+			return box.x == _Box[idx].x+directionX && box.y == _Box[idx].y+directionY
+		})
+
+		if _Box[idx].x == PlayerPosition["x"] && _Box[idx].y == PlayerPosition["y"] && len(newbox) == 0 {
+			_Box[idx].move(directionX, directionY)
+
+			if _Box[idx].x < 0 {
+				PlayerPosition["x"] -= directionX
+				_Box[idx].x = 0
+			}
+
+			if _Box[idx].x > Width-1 {
+				PlayerPosition["x"] += directionX
+				_Box[idx].x = Width - 1
+			}
+
+			if _Box[idx].y < 0 {
+				PlayerPosition["y"] -= directionY
+				_Box[idx].y = 0
+			}
+
+			if _Box[idx].y > Height-1 {
+				PlayerPosition["y"] -= directionY
+				_Box[idx].y = Height - 1
+			}
+		}
+	}
+
+	colidbox := BoxFilter(_Box, func(box Box) bool {
+		return box.x == PlayerPosition["x"] && box.y == PlayerPosition["y"]
+	})
+	if len(colidbox) != 0 {
+		PlayerPosition["x"] -= directionX
+		PlayerPosition["y"] -= directionY
+	}
+
 	if PlayerPosition["x"] < 0 {
 		PlayerPosition["x"] = 0
 	}
@@ -106,6 +144,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	BoardClear()
 	screen.Fill(White)
 
 	for _, ga := range _Goal {
@@ -139,10 +178,10 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return screenSizeX, screenSizeY
 }
 
-// func (bx *Box) move(x, y int) {
-// 	bx.x += x
-// 	bx.y += y
-// }
+func (bx *Box) move(x, y int) {
+	bx.x += x
+	bx.y += y
+}
 
 // func (bx *Box) setGoal(goal bool) {
 // 	bx.goal = goal
@@ -182,6 +221,26 @@ func getBlock(tile int, color int) color.RGBA {
 	}
 
 	return Tile
+}
+
+func BoxFilter(vs []Box, f func(Box) bool) []Box {
+	vsf := make([]Box, 0)
+	for _, v := range vs {
+		if f(v) {
+			vsf = append(vsf, v)
+		}
+	}
+	return vsf
+}
+
+func BoardClear() {
+	Board = [Height][Width]int{
+		{0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0},
+	}
 }
 
 func reset(box *[]Box, goal *[]Goal) {
