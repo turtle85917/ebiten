@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"math/rand"
@@ -45,9 +44,11 @@ var (
 		{0, 0, 0, 0, 0, 0, 0, 0},
 		{0, 0, 0, 0, 0, 0, 0, 0},
 	}
-	_Box  = []Box{}
-	_Goal = []Goal{}
-	Color = 0
+	_Box     = []Box{}
+	_Goal    = []Goal{}
+	_Steps   = [][]Step{}
+	TempStep = []Step{}
+	Color    = 0
 
 	Gameover = false
 )
@@ -65,13 +66,13 @@ type Goal struct {
 	y int
 }
 
-// type Step struct {
-// 	_type string
-// 	idx   int
-// 	x     int
-// 	y     int
-// 	goal  bool
-// }
+type Step struct {
+	_type string
+	idx   int
+	x     int
+	y     int
+	goal  bool
+}
 
 func (g *Game) Update() error {
 	var directionX int
@@ -90,6 +91,29 @@ func (g *Game) Update() error {
 		directionY = 1
 	}
 
+	if !ebiten.IsKeyPressed(ebiten.KeyU) && !ebiten.IsKeyPressed(ebiten.KeyR) && (directionX != 0 || directionY != 0) {
+		TempStep = append(TempStep, Step{_type: "player-move", x: PlayerPosition["x"], y: PlayerPosition["y"]})
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyU) && len(_Steps) > 0 {
+		step := _Steps[len(_Steps)-1]
+
+		for _, st := range step {
+			switch st._type {
+			case "player-move":
+				PlayerPosition["x"] = st.x
+				PlayerPosition["y"] = st.y
+			case "box-move":
+				_Box[st.idx].x = st.x
+				_Box[st.idx].y = st.y
+			case "box-goal":
+				_Box[st.idx].setGoal(st.goal)
+			}
+		}
+
+		_Steps = _Steps[:len(_Steps)-1]
+	}
+
 	PlayerPosition["x"] += directionX
 	PlayerPosition["y"] += directionY
 
@@ -99,6 +123,7 @@ func (g *Game) Update() error {
 		})
 
 		if _Box[idx].x == PlayerPosition["x"] && _Box[idx].y == PlayerPosition["y"] && len(newbox) == 0 {
+			TempStep = append(TempStep, Step{_type: "box-move", idx: idx, x: _Box[idx].x, y: _Box[idx].y})
 			_Box[idx].move(directionX, directionY)
 
 			if _Box[idx].x < 0 {
@@ -145,9 +170,12 @@ func (g *Game) Update() error {
 	}
 
 	cancelGoal()
-	if checkWin() {
-		fmt.Println("이김 ㅅㄱ")
+	Gameover = checkWin()
+
+	if len(TempStep) > 0 {
+		_Steps = append(_Steps, TempStep)
 	}
+	TempStep = []Step{}
 	return nil
 }
 
@@ -237,6 +265,9 @@ func checkWin() bool {
 		for _, goal := range _Goal {
 			if goal.x == _Box[idx].x && goal.y == _Box[idx].y {
 				stack++
+				if len(TempStep) > 0 {
+					TempStep = append(TempStep, Step{_type: "box-goal", idx: idx, goal: _Box[idx].goal})
+				}
 				_Box[idx].setGoal(true)
 			}
 		}
