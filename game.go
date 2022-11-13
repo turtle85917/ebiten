@@ -1,7 +1,6 @@
 package main
 
 import (
-	"image/color"
 	"log"
 	"math/rand"
 	"time"
@@ -9,20 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
-)
-
-const (
-	screenSizeX = tileSize * (width + 2)
-	screenSizeY = tileSize * (height + 2)
-	width       = 15
-	height      = 12
-	tileSize    = 50
-)
-
-const (
-	playerMove = iota
-	boxMove
-	boxGoal
 )
 
 type Game struct {
@@ -72,7 +57,7 @@ func (g *Game) Update() error {
 	}
 
 	if !ebiten.IsKeyPressed(ebiten.KeyU) && !ebiten.IsKeyPressed(ebiten.KeyR) && (directionX != 0 || directionY != 0) {
-		step = append(step, Step{kind: playerMove})
+		step = append(step, Step{kind: playerMove, Point: Point{x: playerPoint[0], y: playerPoint[1]}})
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyU) && len(steps) > 0 {
@@ -165,7 +150,26 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	board = [height][width]int{}
-	screen.Fill(white)
+	screen.Fill(background)
+
+	image, _, err := ebitenutil.NewImageFromFile("./assets/game-clear.png")
+	if err != nil {
+		log.Print(err)
+	} else if g.clear {
+		sizeX := float64(image.Bounds().Size().X / 2)
+		sizeY := float64(image.Bounds().Size().Y / 2)
+
+		screenCenterX := float64(screenSizeX / 2)
+		screenCenterY := float64(screenSizeY / 2)
+
+		op := ebiten.DrawImageOptions{}
+		op.GeoM.Translate(screenCenterX-sizeX, screenCenterY-sizeY-150)
+
+		screen.DrawImage(image, &op)
+
+		return
+	}
+
 	for _, ga := range goal {
 		board[ga.y][ga.x] = 2
 	}
@@ -180,35 +184,30 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	for y := -1; y < height+1; y++ {
 		for x := -1; x < width+1; x++ {
-			_x := float64(50 * (x + 1))
-			_y := float64(50 * (y + 1))
+			texture := none
+			fx := float64(50 * (x + 1))
+			fy := float64(50 * (y + 1))
 
-			if x == -1 || y == -1 || x == width || y == height {
+			if x == -1 || y == -1 || x == width || y == height || board[y][x] == 1 {
 				// 테두리
-				ebitenutil.DrawRect(screen, _x, _y, 50, 50, colors[clr])
+				ebitenutil.DrawRect(screen, fx, fy, 50, 50, colors[clr])
 			} else if x == playerPoint[0] && y == playerPoint[1] {
 				// 플레이어
-				ebitenutil.DrawRect(screen, _x, _y, 50, 50, player)
+				texture = tplayer
 			} else {
-				ebitenutil.DrawRect(screen, _x, _y, 50, 50, getBlock(board[y][x], clr))
+				texture = getTexture(board[y][x])
+			}
+
+			// Texture인 경우에만
+			if texture != none {
+				texture := textures[texture]
+
+				op := ebiten.DrawImageOptions{}
+				op.GeoM.Translate(fx, fy)
+
+				screen.DrawImage(texture, &op)
 			}
 		}
-	}
-
-	image, _, err := ebitenutil.NewImageFromFile("./assets/game-clear.png")
-	if err != nil {
-		log.Fatal(err)
-	} else if g.clear {
-		sizeX := float64(image.Bounds().Size().X / 2)
-		sizeY := float64(image.Bounds().Size().Y / 2)
-
-		screenCenterX := float64(screenSizeX / 2)
-		screenCenterY := float64(screenSizeY / 2)
-
-		op := ebiten.DrawImageOptions{}
-		op.GeoM.Translate(screenCenterX-sizeX, screenCenterY-sizeY)
-
-		screen.DrawImage(image, &op)
 	}
 }
 
@@ -233,18 +232,16 @@ func NewGoal(point [2]int) {
 	goal = append(goal, Goal{Point{x: point[0], y: point[1]}})
 }
 
-func getBlock(block int, color int) color.RGBA {
+func getTexture(block int) int {
 	switch block {
 	case 0:
-		return tile
-	case 1:
-		return colors[color]
+		return ttile
 	case 2:
-		return ngoal
+		return tngoal
 	case 3:
-		return ygoal
+		return tygoal
 	default:
-		return tile
+		return ttile
 	}
 }
 
@@ -307,9 +304,26 @@ func reset() {
 	clr = rand.Intn(7)
 }
 
+func loadTexture(path string) *ebiten.Image {
+	texture, _, err := ebitenutil.NewImageFromFile(path)
+	if err != nil {
+		log.Print(err)
+		return nil
+	}
+
+	return texture
+}
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 	clr = rand.Intn(7)
+
+	player = loadTexture("./assets/texture/smile.png")
+	tile = loadTexture("./assets/texture/tile.png")
+	ngoal = loadTexture("./assets/texture/goal-not.png")
+	ygoal = loadTexture("./assets/texture/goal-success.png")
+
+	textures = [...]*ebiten.Image{nil, player, tile, ngoal, ygoal}
 
 	reset()
 }
