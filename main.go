@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"math/rand"
@@ -23,7 +24,7 @@ var (
 	White  = color.RGBA{255, 255, 255, 255}
 	Tile   = color.RGBA{77, 77, 77, 255}
 	NGoal  = color.RGBA{255, 150, 150, 255}
-	YGoal  = color.RGBA{150, 255, 0, 255}
+	YGoal  = color.RGBA{65, 130, 35, 255}
 	Player = color.RGBA{225, 227, 167, 255}
 
 	Red    = color.RGBA{255, 0, 0, 255}
@@ -47,6 +48,8 @@ var (
 	_Box  = []Box{}
 	_Goal = []Goal{}
 	Color = 0
+
+	Gameover = false
 )
 
 type Game struct{}
@@ -140,6 +143,11 @@ func (g *Game) Update() error {
 	if PlayerPosition["y"] > Height-1 {
 		PlayerPosition["y"] = Height - 1
 	}
+
+	cancelGoal()
+	if checkWin() {
+		fmt.Println("이김 ㅅㄱ")
+	}
 	return nil
 }
 
@@ -183,9 +191,9 @@ func (bx *Box) move(x, y int) {
 	bx.y += y
 }
 
-// func (bx *Box) setGoal(goal bool) {
-// 	bx.goal = goal
-// }
+func (bx *Box) setGoal(goal bool) {
+	bx.goal = goal
+}
 
 func getColor(color int) color.RGBA {
 	switch color {
@@ -221,6 +229,30 @@ func getBlock(tile int, color int) color.RGBA {
 	}
 
 	return Tile
+}
+
+func checkWin() bool {
+	var stack int
+	for idx := 0; idx < len(_Box); idx++ {
+		for _, goal := range _Goal {
+			if goal.x == _Box[idx].x && goal.y == _Box[idx].y {
+				stack++
+				_Box[idx].setGoal(true)
+			}
+		}
+	}
+
+	return len(_Goal) == stack
+}
+
+func cancelGoal() {
+	for idx := 0; idx < len(_Box); idx++ {
+		for _, goal := range _Goal {
+			if _Box[idx].goal && !(goal.x == _Box[idx].x && goal.y == _Box[idx].y) {
+				_Box[idx].setGoal(false)
+			}
+		}
+	}
 }
 
 func BoxFilter(vs []Box, f func(Box) bool) []Box {
