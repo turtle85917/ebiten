@@ -114,6 +114,15 @@ func (g *Game) Update() error {
 		_Steps = _Steps[:len(_Steps)-1]
 	}
 
+	if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+		PlayerPosition = map[string]int{
+			"x": 2, "y": 3,
+		}
+		_Steps = [][]Step{}
+		TempStep = []Step{}
+		initialization()
+	}
+
 	PlayerPosition["x"] += directionX
 	PlayerPosition["y"] += directionY
 
@@ -306,46 +315,46 @@ func BoardClear() {
 	}
 }
 
-func reset(box *[]Box, goal *[]Goal) {
-	*box = []Box{}
-	*goal = []Goal{}
+func initialization() {
+	_Box = []Box{}
+	_Goal = []Goal{}
 
-	*box = append(*box, Box{goal: false, x: 1, y: 3})
-	*box = append(*box, Box{goal: false, x: 3, y: 2})
-	*box = append(*box, Box{goal: false, x: 7, y: 4})
-	*box = append(*box, Box{goal: false, x: 4, y: 3})
-	*box = append(*box, Box{goal: false, x: 3, y: 1})
-	*box = append(*box, Box{goal: false, x: 9, y: 5})
-	*box = append(*box, Box{goal: false, x: 12, y: 10})
-	*box = append(*box, Box{goal: false, x: 3, y: 11})
-	*box = append(*box, Box{goal: false, x: 14, y: 4})
-	*box = append(*box, Box{goal: false, x: 3, y: 3})
-	*box = append(*box, Box{goal: false, x: 1, y: 10})
-	*box = append(*box, Box{goal: false, x: 10, y: 2})
-	*box = append(*box, Box{goal: false, x: 10, y: 6})
-	*box = append(*box, Box{goal: false, x: 7, y: 10})
+	_Box = append(_Box, Box{goal: false, x: 1, y: 3})
+	_Box = append(_Box, Box{goal: false, x: 3, y: 2})
+	_Box = append(_Box, Box{goal: false, x: 7, y: 4})
+	_Box = append(_Box, Box{goal: false, x: 4, y: 3})
+	_Box = append(_Box, Box{goal: false, x: 3, y: 1})
+	_Box = append(_Box, Box{goal: false, x: 9, y: 5})
+	_Box = append(_Box, Box{goal: false, x: 12, y: 10})
+	_Box = append(_Box, Box{goal: false, x: 3, y: 11})
+	_Box = append(_Box, Box{goal: false, x: 14, y: 4})
+	_Box = append(_Box, Box{goal: false, x: 3, y: 3})
+	_Box = append(_Box, Box{goal: false, x: 1, y: 10})
+	_Box = append(_Box, Box{goal: false, x: 10, y: 2})
+	_Box = append(_Box, Box{goal: false, x: 10, y: 6})
+	_Box = append(_Box, Box{goal: false, x: 7, y: 10})
 
-	*goal = append(*goal, Goal{x: 2, y: 4})
-	*goal = append(*goal, Goal{x: 1, y: 2})
-	*goal = append(*goal, Goal{x: 9, y: 4})
-	*goal = append(*goal, Goal{x: 7, y: 3})
-	*goal = append(*goal, Goal{x: 2, y: 7})
-	*goal = append(*goal, Goal{x: 1, y: 5})
-	*goal = append(*goal, Goal{x: 14, y: 2})
-	*goal = append(*goal, Goal{x: 4, y: 11})
-	*goal = append(*goal, Goal{x: 2, y: 9})
-	*goal = append(*goal, Goal{x: 5, y: 3})
-	*goal = append(*goal, Goal{x: 14, y: 1})
-	*goal = append(*goal, Goal{x: 10, y: 3})
-	*goal = append(*goal, Goal{x: 10, y: 11})
-	*goal = append(*goal, Goal{x: 14, y: 11})
+	_Goal = append(_Goal, Goal{x: 2, y: 4})
+	_Goal = append(_Goal, Goal{x: 1, y: 2})
+	_Goal = append(_Goal, Goal{x: 9, y: 4})
+	_Goal = append(_Goal, Goal{x: 7, y: 3})
+	_Goal = append(_Goal, Goal{x: 2, y: 7})
+	_Goal = append(_Goal, Goal{x: 1, y: 5})
+	_Goal = append(_Goal, Goal{x: 14, y: 2})
+	_Goal = append(_Goal, Goal{x: 4, y: 11})
+	_Goal = append(_Goal, Goal{x: 2, y: 9})
+	_Goal = append(_Goal, Goal{x: 5, y: 3})
+	_Goal = append(_Goal, Goal{x: 14, y: 1})
+	_Goal = append(_Goal, Goal{x: 10, y: 3})
+	_Goal = append(_Goal, Goal{x: 10, y: 11})
+	_Goal = append(_Goal, Goal{x: 14, y: 11})
 }
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
 	Color = rand.Intn(7)
 
-	reset(&_Box, &_Goal)
+	initialization()
 }
 
 func main() {
