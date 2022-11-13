@@ -75,7 +75,6 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(White)
-	screen.Size()
 
 	for _, ga := range _Goal {
 		Board[ga.y][ga.x] = 2
@@ -93,12 +92,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		for x := -1; x < Width+1; x++ {
 			if x == -1 || y == -1 || x == Width || y == Height {
 				// 테두리
-				ebitenutil.DrawRect(screen, float64(50*x), float64(50*y), 50, 50, getColor(Color))
+				ebitenutil.DrawRect(screen, float64(50*(x+1)), float64(50*(y+1)), 50, 50, getColor(Color))
 			} else if x == PlayerPosition["x"] && y == PlayerPosition["y"] {
 				// 플레이어
-				ebitenutil.DrawRect(screen, float64(50*x), float64(50*y), 50, 50, Player)
+				ebitenutil.DrawRect(screen, float64(50*(x+1)), float64(50*(y+1)), 50, 50, Player)
 			} else {
-				ebitenutil.DrawRect(screen, float64(50*x), float64(50*y), 50, 50, getBlock(Board[y][x], Color))
+				ebitenutil.DrawRect(screen, float64(50*(x+1)), float64(50*(y+1)), 50, 50, getBlock(Board[y][x], Color))
 			}
 		}
 	}
