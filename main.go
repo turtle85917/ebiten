@@ -75,6 +75,10 @@ type Step struct {
 }
 
 func (g *Game) Update() error {
+	if Gameover {
+		return nil
+	}
+
 	var directionX int
 	var directionY int
 
@@ -120,6 +124,7 @@ func (g *Game) Update() error {
 		}
 		_Steps = [][]Step{}
 		TempStep = []Step{}
+		Color = rand.Intn(7)
 		initialization()
 	}
 
@@ -141,7 +146,7 @@ func (g *Game) Update() error {
 			}
 
 			if _Box[idx].x > Width-1 {
-				PlayerPosition["x"] += directionX
+				PlayerPosition["x"] -= directionX
 				_Box[idx].x = Width - 1
 			}
 
@@ -191,7 +196,6 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	BoardClear()
 	screen.Fill(White)
-
 	for _, ga := range _Goal {
 		Board[ga.y][ga.x] = 2
 	}
@@ -206,16 +210,35 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	for y := -1; y < Height+1; y++ {
 		for x := -1; x < Width+1; x++ {
+			_x := float64(50 * (x + 1))
+			_y := float64(50 * (y + 1))
+
 			if x == -1 || y == -1 || x == Width || y == Height {
 				// 테두리
-				ebitenutil.DrawRect(screen, float64(50*(x+1)), float64(50*(y+1)), 50, 50, getColor(Color))
+				ebitenutil.DrawRect(screen, _x, _y, 50, 50, getColor(Color))
 			} else if x == PlayerPosition["x"] && y == PlayerPosition["y"] {
 				// 플레이어
-				ebitenutil.DrawRect(screen, float64(50*(x+1)), float64(50*(y+1)), 50, 50, Player)
+				ebitenutil.DrawRect(screen, _x, _y, 50, 50, Player)
 			} else {
-				ebitenutil.DrawRect(screen, float64(50*(x+1)), float64(50*(y+1)), 50, 50, getBlock(Board[y][x], Color))
+				ebitenutil.DrawRect(screen, _x, _y, 50, 50, getBlock(Board[y][x], Color))
 			}
 		}
+	}
+
+	image, _, err := ebitenutil.NewImageFromFile("./assets/game-clear.png")
+	if err != nil {
+		log.Fatal(err)
+	} else if Gameover {
+		sizeX := float64(image.Bounds().Size().X / 2)
+		sizeY := float64(image.Bounds().Size().Y / 2)
+
+		screenCenterX := float64(screenSizeX / 2)
+		screenCenterY := float64(screenSizeY / 2)
+
+		op := ebiten.DrawImageOptions{}
+		op.GeoM.Translate(screenCenterX-sizeX, screenCenterY-sizeY)
+
+		screen.DrawImage(image, &op)
 	}
 }
 
@@ -223,13 +246,21 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return screenSizeX, screenSizeY
 }
 
-func (bx *Box) move(x, y int) {
-	bx.x += x
-	bx.y += y
+func (box *Box) move(x, y int) {
+	box.x += x
+	box.y += y
 }
 
-func (bx *Box) setGoal(goal bool) {
-	bx.goal = goal
+func (box *Box) setGoal(goal bool) {
+	box.goal = goal
+}
+
+func NewBox(point [2]int) {
+	_Box = append(_Box, Box{goal: false, x: point[0], y: point[1]})
+}
+
+func NewGoal(point [2]int) {
+	_Goal = append(_Goal, Goal{x: point[0], y: point[1]})
 }
 
 func getColor(color int) color.RGBA {
@@ -319,35 +350,15 @@ func initialization() {
 	_Box = []Box{}
 	_Goal = []Goal{}
 
-	_Box = append(_Box, Box{goal: false, x: 1, y: 3})
-	_Box = append(_Box, Box{goal: false, x: 3, y: 2})
-	_Box = append(_Box, Box{goal: false, x: 7, y: 4})
-	_Box = append(_Box, Box{goal: false, x: 4, y: 3})
-	_Box = append(_Box, Box{goal: false, x: 3, y: 1})
-	_Box = append(_Box, Box{goal: false, x: 9, y: 5})
-	_Box = append(_Box, Box{goal: false, x: 12, y: 10})
-	_Box = append(_Box, Box{goal: false, x: 3, y: 11})
-	_Box = append(_Box, Box{goal: false, x: 14, y: 4})
-	_Box = append(_Box, Box{goal: false, x: 3, y: 3})
-	_Box = append(_Box, Box{goal: false, x: 1, y: 10})
-	_Box = append(_Box, Box{goal: false, x: 10, y: 2})
-	_Box = append(_Box, Box{goal: false, x: 10, y: 6})
-	_Box = append(_Box, Box{goal: false, x: 7, y: 10})
+	points := [...][2]int{{1, 3}, {3, 2}, {7, 4}, {4, 3}, {3, 1}, {9, 5}, {12, 10}, {3, 11}, {14, 4}, {3, 3}, {1, 10}, {10, 2}, {10, 6}, {7, 10}}
+	for _, point := range points {
+		NewBox(point)
+	}
 
-	_Goal = append(_Goal, Goal{x: 2, y: 4})
-	_Goal = append(_Goal, Goal{x: 1, y: 2})
-	_Goal = append(_Goal, Goal{x: 9, y: 4})
-	_Goal = append(_Goal, Goal{x: 7, y: 3})
-	_Goal = append(_Goal, Goal{x: 2, y: 7})
-	_Goal = append(_Goal, Goal{x: 1, y: 5})
-	_Goal = append(_Goal, Goal{x: 14, y: 2})
-	_Goal = append(_Goal, Goal{x: 4, y: 11})
-	_Goal = append(_Goal, Goal{x: 2, y: 9})
-	_Goal = append(_Goal, Goal{x: 5, y: 3})
-	_Goal = append(_Goal, Goal{x: 14, y: 1})
-	_Goal = append(_Goal, Goal{x: 10, y: 3})
-	_Goal = append(_Goal, Goal{x: 10, y: 11})
-	_Goal = append(_Goal, Goal{x: 14, y: 11})
+	points = [...][2]int{{2, 4}, {1, 2}, {9, 4}, {7, 3}, {2, 7}, {1, 6}, {14, 2}, {4, 11}, {2, 9}, {5, 3}, {14, 1}, {10, 3}, {10, 11}, {14, 11}}
+	for _, point := range points {
+		NewGoal(point)
+	}
 }
 
 func init() {
